@@ -16,80 +16,122 @@ public final class AsyncAssertions
 {
     /**
      * Returns evaluator of asynchronous assertions with given timeout.
-     * See {@link AsyncAssertionsEvaluator} for more details.
+     * See {@link AsyncAssert} for more details.
+     *
+     * <pre><code class='java'>
+     * awaitAtMost(Duration.ofSeconds(5)).untilAssertions(async -> {
+     *     async.assertThat(getValue()).isEqualTo(expected);
+     * });
+     * </code></pre>
      *
      * @param timeout timeout for the assertions
-     * @return {@link AsyncAssertionsEvaluator}
+     * @return {@link AsyncAssert}
      */
-    public static AsyncAssertionsEvaluator awaitAtMost(@NonNull final Duration timeout)
+    public static AsyncAssert awaitAtMost(@NonNull final Duration timeout)
     {
-        return new AsyncAssertionsEvaluatorImpl(timeout);
+        return new AsyncAssertImpl(SystemTime.UTC, AsyncAssertTimeoutCondition.withTimeout(timeout));
     }
 
     /**
      * Returns evaluator of asynchronous assertions with given timeout.
-     * See {@link AsyncAssertionsEvaluator} for more details.
+     * See {@link AsyncAssert} for more details.
+     *
+     * <pre><code class='java'>
+     * awaitAtMost(5, SECONDS).untilAssertions(async -> {
+     *     async.assertThat(getValue()).isEqualTo(expected);
+     * });
+     * </code></pre>
      *
      * @param timeout timeout value for the assertions
      * @param unit timeout unit
-     * @return {@link AsyncAssertionsEvaluator}
+     * @return {@link AsyncAssert}
      */
-    public static AsyncAssertionsEvaluator awaitAtMost(final long timeout, @NonNull final TimeUnit unit)
+    public static AsyncAssert awaitAtMost(final long timeout, @NonNull final TimeUnit unit)
     {
         return awaitAtMost(Duration.ofMillis(unit.toMillis(timeout)));
     }
 
     /**
      * Returns evaluator of asynchronous assertions with 1 second timeout.
-     * See {@link AsyncAssertionsEvaluator} for more details.
+     * See {@link AsyncAssert} for more details.
      *
-     * @return {@link AsyncAssertionsEvaluator}
+     * <pre><code class='java'>
+     * awaitAtMostOneSecond().untilAssertions(async -> {
+     *     async.assertThat(getValue()).isEqualTo(expected);
+     * });
+     * </code></pre>
+     *
+     * @return {@link AsyncAssert}
      */
-    public static AsyncAssertionsEvaluator awaitAtMostOneSecond()
+    public static AsyncAssert awaitAtMostOneSecond()
     {
         return awaitAtMost(Duration.ofSeconds(1));
     }
 
     /**
      * Returns evaluator of asynchronous assertions with 2 seconds timeout.
-     * See {@link AsyncAssertionsEvaluator} for more details.
+     * See {@link AsyncAssert} for more details.
      *
-     * @return {@link AsyncAssertionsEvaluator}
+     * <pre><code class='java'>
+     * awaitAtMostTwoSeconds().untilAssertions(async -> {
+     *     async.assertThat(getValue()).isEqualTo(expected);
+     * });
+     * </code></pre>
+     *
+     * @return {@link AsyncAssert}
      */
-    public static AsyncAssertionsEvaluator awaitAtMostTwoSeconds()
+    public static AsyncAssert awaitAtMostTwoSeconds()
     {
         return awaitAtMost(Duration.ofSeconds(2));
     }
 
     /**
      * Returns evaluator of asynchronous assertions with 5 seconds timeout.
-     * See {@link AsyncAssertionsEvaluator} for more details.
+     * See {@link AsyncAssert} for more details.
      *
-     * @return {@link AsyncAssertionsEvaluator}
+     * <pre><code class='java'>
+     * awaitAtMostFiveSeconds().untilAssertions(async -> {
+     *     async.assertThat(getValue()).isEqualTo(expected);
+     * });
+     * </code></pre>
+     *
+     * @return {@link AsyncAssert}
      */
-    public static AsyncAssertionsEvaluator awaitAtMostFiveSeconds()
+    public static AsyncAssert awaitAtMostFiveSeconds()
     {
         return awaitAtMost(Duration.ofSeconds(5));
     }
 
     /**
      * Returns evaluator of asynchronous assertions with 15 seconds timeout.
-     * See {@link AsyncAssertionsEvaluator} for more details.
+     * See {@link AsyncAssert} for more details.
      *
-     * @return {@link AsyncAssertionsEvaluator}
+     * <pre><code class='java'>
+     * awaitAtMostFifteenSeconds().untilAssertions(async -> {
+     *     async.assertThat(getValue()).isEqualTo(expected);
+     * });
+     * </code></pre>
+     *
+     * @return {@link AsyncAssert}
      */
-    public static AsyncAssertionsEvaluator awaitAtMostFifteenSeconds()
+    public static AsyncAssert awaitAtMostFifteenSeconds()
     {
         return awaitAtMost(Duration.ofSeconds(15));
     }
 
     /**
      * Returns evaluator of asynchronous assertions with 30 seconds timeout.
-     * See {@link AsyncAssertionsEvaluator} for more details.
+     * See {@link AsyncAssert} for more details.
      *
-     * @return {@link AsyncAssertionsEvaluator}
+     * <pre><code class='java'>
+     * awaitAtMostThirtySeconds().untilAssertions(async -> {
+     *     async.assertThat(getValue()).isEqualTo(expected);
+     * });
+     * </code></pre>
+     *
+     * @return {@link AsyncAssert}
      */
-    public static AsyncAssertionsEvaluator awaitAtMostThirtySeconds()
+    public static AsyncAssert awaitAtMostThirtySeconds()
     {
         return awaitAtMost(Duration.ofSeconds(30));
     }

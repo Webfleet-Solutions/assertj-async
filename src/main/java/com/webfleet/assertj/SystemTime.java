@@ -4,36 +4,37 @@ import static java.util.logging.Level.WARNING;
 
 import java.time.Clock;
 import java.time.Duration;
-import java.util.logging.Logger;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
+import lombok.extern.java.Log;
 
 
-@AllArgsConstructor(staticName = "from")
+@AllArgsConstructor(staticName = "withClock")
 final class SystemTime implements Time
 {
-    static final SystemTime UTC = SystemTime.from(Clock.systemUTC());
+    static final SystemTime UTC = SystemTime.withClock(Clock.systemUTC());
 
     @NonNull
     private final Clock clock;
 
     @Override
-    public Measure measure()
+    public ElapsedTime measure()
     {
         final var startTime = clock.millis();
         return () -> Duration.ofMillis(clock.millis() - startTime);
     }
 
     @Override
-    public TimeWaiter waiter(@NonNull final Object waitMutex)
+    public WaitCondition waitCondition(@NonNull final Object waitMutex)
     {
-        return MutexWaiter.of(waitMutex);
+        return MutexWaitCondition.create(waitMutex);
     }
 
-    @AllArgsConstructor(staticName = "of", access = AccessLevel.PRIVATE)
-    private static final class MutexWaiter implements TimeWaiter
+    @AllArgsConstructor(staticName = "create", access = AccessLevel.PRIVATE)
+    @Log
+    private static final class MutexWaitCondition implements WaitCondition
     {
         private final Object waitMutex;
 
@@ -41,15 +42,19 @@ final class SystemTime implements Time
         @SuppressWarnings("squid:S2274")
         public void waitFor(@NonNull final Duration waitInterval)
         {
+            if (waitInterval.compareTo(Duration.ZERO) <= 0)
+            {
+                return;
+            }
             synchronized (waitMutex)
             {
                 try
                 {
                     waitMutex.wait(waitInterval.toMillis());
                 }
-                catch (final InterruptedException e)
+                catch (@SuppressWarnings("unused") final InterruptedException e)
                 {
-                    Logger.getLogger(TimeWaiter.class.getName()).log(WARNING, "Wait interrupted", e);
+                    LOG.log(WARNING, "Wait interrupted");
                     Thread.currentThread().interrupt();
                 }
             }

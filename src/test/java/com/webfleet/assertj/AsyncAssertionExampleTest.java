@@ -1,19 +1,22 @@
-# AssertJ - Async
+package com.webfleet.assertj;
 
-AssertJ extension for making asynchronous assertions.
+import static com.webfleet.assertj.AsyncAssertions.awaitAtMostOneSecond;
 
-## Usage
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
-The entry point for making asynchronous assertion is `AsyncAssertions` class.
+import org.junit.jupiter.api.Test;
 
-Here is an example of test:
-```java
+
 class AsyncAssertionExampleTest
 {
     @Test
-    void shouldReceiveChangeMessages() {
+    void shouldReceiveChangeMessages()
+    {
         // given
-        var receivedMessages = new ConcurrentLinkedQueue<String>();
+        final var receivedMessages = new ConcurrentLinkedQueue<String>();
 
         // when
         listenToChanges(receivedMessages::offer);
@@ -21,14 +24,15 @@ class AsyncAssertionExampleTest
         // then
         awaitAtMostOneSecond().untilAssertions(async -> async
             .assertThat(receivedMessages).containsExactly("A", "B", "C"));
+
     }
-    
-    private static void listenToChanges(Consumer<String> consumer) {
+
+    private static void listenToChanges(final Consumer<String> consumer)
+    {
         // simulation of asynchronous consumer
-        var scheduler = Executors.newSingleThreadScheduledExecutor();
+        final var scheduler = Executors.newSingleThreadScheduledExecutor();
         scheduler.schedule(() -> consumer.accept("A"), 100L, TimeUnit.MILLISECONDS);
         scheduler.schedule(() -> consumer.accept("B"), 200L, TimeUnit.MILLISECONDS);
         scheduler.schedule(() -> consumer.accept("C"), 300L, TimeUnit.MILLISECONDS);
     }
 }
-```

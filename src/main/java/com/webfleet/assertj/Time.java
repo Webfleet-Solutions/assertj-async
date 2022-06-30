@@ -2,26 +2,33 @@ package com.webfleet.assertj;
 
 import java.time.Duration;
 
+import lombok.NonNull;
+
 
 interface Time
 {
-    Measure measure();
+    ElapsedTime measure();
 
-    TimeWaiter waiter(Object mutex);
+    WaitCondition waitCondition(Object mutex);
 
     @FunctionalInterface
-    interface Measure
+    interface ElapsedTime
     {
-        Duration duration();
+        Duration get();
 
-        default long millis()
+        default boolean isLowerThanOrEqualTo(@NonNull final Duration duration)
         {
-            return duration().toMillis();
+            return get().compareTo(duration) <= 0;
+        }
+
+        default boolean isLowerThan(@NonNull final Duration duration)
+        {
+            return get().compareTo(duration) < 0;
         }
     }
 
     @FunctionalInterface
-    interface TimeWaiter
+    interface WaitCondition
     {
         void waitFor(Duration interval);
     }
