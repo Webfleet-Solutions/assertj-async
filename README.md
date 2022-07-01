@@ -3,6 +3,7 @@
 Extension for [AssertJ](https://github.com/assertj/assertj-core) API for making asynchronous assertions.
 
 [![Build Status](https://github.com/Webfleet-Solutions/assertj-async/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/Webfleet-Solutions/assertj-async/actions/workflows/build.yml)
+[![CodeQL](https://github.com/Webfleet-Solutions/assertj-async/actions/workflows/codeql-analysis.yml/badge.svg?branch=main)](https://github.com/Webfleet-Solutions/assertj-async/actions/workflows/codeql-analysis.yml)
 [![license](http://img.shields.io/badge/license-MIT-blue.svg?style=flat)](https://opensource.org/licenses/MIT)
 
 ## Usage
