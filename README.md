@@ -2,7 +2,8 @@
 
 Extension for [AssertJ](https://github.com/assertj/assertj-core) API for making asynchronous assertions.
 
-[![Build Status](https://github.com/Webfleet-Solutions/assertj-async/actions/workflows/build.yml/badge.svg?branch=main)](https://travis-ci.org/Webfleet-Solutions/oauth-java-example)
+[![Build Status](https://github.com/Webfleet-Solutions/assertj-async/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/Webfleet-Solutions/assertj-async/actions/workflows/build.yml)
+[![Coverage](.github/badges/jacoco.svg)](https://github.com/Webfleet-Solutions/assertj-async/actions/workflows/build.yml?branch=main)
 [![license](http://img.shields.io/badge/license-MIT-blue.svg?style=flat)](https://opensource.org/licenses/MIT)
 
 ## Usage

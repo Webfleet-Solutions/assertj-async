@@ -34,3 +34,5 @@ jobs:
       uses: gradle/gradle-build-action@v2
       with:
         arguments: dependencyCheckAnalyze
+    - name: jacoco-badge-generator
+      uses: cicirello/jacoco-badge-generator@v2.7.0
