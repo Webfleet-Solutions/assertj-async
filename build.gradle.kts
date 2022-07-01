@@ -52,8 +52,7 @@ configurations {
     }
 }
 
-group to "com.webfleet"
-
+group = "com.webfleet"
 
 dependencies {
     // api
@@ -103,8 +102,9 @@ tasks {
         executionData(fileTree(project.buildDir).include("jacoco/*.exec"))
         finalizedBy(jacocoTestCoverageVerification)
         reports {
-            html.required to true
-            xml.required to true
+            xml.required.set(false)
+            html.required.set(true)
+            csv.required.set(true)
         }
     }
     jacocoTestCoverageVerification {
