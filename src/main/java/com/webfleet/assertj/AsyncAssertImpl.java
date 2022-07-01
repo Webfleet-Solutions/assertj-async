@@ -14,10 +14,10 @@ import lombok.NonNull;
 final class AsyncAssertImpl implements AsyncAssert
 {
     private final Time time;
-    private final AsyncAssertAwaiConfig config;
+    private final AsyncAssertAwaitConfig config;
     private final Object waitMutex;
 
-    AsyncAssertImpl(@NonNull final Time time, @NonNull final AsyncAssertAwaiConfig config)
+    AsyncAssertImpl(@NonNull final Time time, @NonNull final AsyncAssertAwaitConfig config)
     {
         this(time, config, new Object());
     }

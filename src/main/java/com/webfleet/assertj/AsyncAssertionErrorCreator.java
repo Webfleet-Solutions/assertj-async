@@ -28,12 +28,12 @@ final class AsyncAssertionErrorCreator
      */
     private static final String ASYNC_ASSERTION_ERROR_CLASS = "com.webfleet.assertj.AsyncAssertionError";
 
-    private static final BiFunction<AsyncAssertAwaiConfig, AssertionError, AssertionError> CREATOR =
+    private static final BiFunction<AsyncAssertAwaitConfig, AssertionError, AssertionError> CREATOR =
         tryLoadAsyncAssertionErrorClass()
             .map(AsyncAssertionErrorCreator::asyncAssertionErrorCreator)
             .orElseGet(AsyncAssertionErrorCreator::fallbackCreator);
 
-    static AssertionError create(@NonNull final AsyncAssertAwaiConfig config, @NonNull final AssertionError error)
+    static AssertionError create(@NonNull final AsyncAssertAwaitConfig config, @NonNull final AssertionError error)
     {
         return CREATOR.apply(config, error);
     }
@@ -51,14 +51,14 @@ final class AsyncAssertionErrorCreator
         }
     }
 
-    private static BiFunction<AsyncAssertAwaiConfig, AssertionError, AssertionError> asyncAssertionErrorCreator(final Class<?> asyncAssertionErrorClass)
+    private static BiFunction<AsyncAssertAwaitConfig, AssertionError, AssertionError> asyncAssertionErrorCreator(final Class<?> asyncAssertionErrorClass)
     {
         final var method = ReflectionCall.run(() -> asyncAssertionErrorClass
             .getDeclaredMethod("create", String.class, AssertionError.class));
         return (config, error) -> ReflectionCall.run(() -> (AssertionError) method.invoke(null, createHeading(config), error));
     }
 
-    private static BiFunction<AsyncAssertAwaiConfig, AssertionError, AssertionError> fallbackCreator()
+    private static BiFunction<AsyncAssertAwaitConfig, AssertionError, AssertionError> fallbackCreator()
     {
         return (config, error) -> {
             final var errors = aggregateErrors(error);
@@ -85,7 +85,7 @@ final class AsyncAssertionErrorCreator
         return singletonList(error.getMessage());
     }
 
-    private static String createHeading(final AsyncAssertAwaiConfig config)
+    private static String createHeading(final AsyncAssertAwaitConfig config)
     {
         return String.format("Async assertion failed after exceeding %sms timeout", config.timeout().toMillis());
     }

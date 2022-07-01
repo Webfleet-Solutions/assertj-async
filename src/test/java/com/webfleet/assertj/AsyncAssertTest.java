@@ -16,7 +16,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @ExtendWith(SoftAssertionsExtension.class)
 class AsyncAssertTest
 {
-    private static final AsyncAssertAwaiConfig CONFIG = AsyncAssertAwaiConfig
+    private static final AsyncAssertAwaitConfig CONFIG = AsyncAssertAwaitConfig
         .withTimeout(Duration.ofSeconds(5))
         .withCheckInterval(Duration.ofSeconds(1));
 

@@ -20,7 +20,7 @@ import lombok.experimental.Accessors;
 @Getter
 @EqualsAndHashCode
 @ToString
-final class AsyncAssertAwaiConfig
+final class AsyncAssertAwaitConfig
 {
     private static final Duration DEFAULT_CHECK_INTERVAL = Duration.ofMillis(100L);
     private static final Duration DEFAULT_SHORT_CHECK_INTERVAL = Duration.ofMillis(50L);
@@ -28,17 +28,17 @@ final class AsyncAssertAwaiConfig
     private final Duration timeout;
     private final Duration checkInterval;
 
-    static AsyncAssertAwaiConfig withTimeout(@NonNull final Duration timeout)
+    static AsyncAssertAwaitConfig withTimeout(@NonNull final Duration timeout)
     {
         if (timeout.compareTo(ZERO) <= 0)
         {
             throw new IllegalArgumentException("timeout must be greater than zero");
         }
         final var checkInterval = computeCheckInterval(timeout);
-        return new AsyncAssertAwaiConfig(timeout, checkInterval);
+        return new AsyncAssertAwaitConfig(timeout, checkInterval);
     }
 
-    AsyncAssertAwaiConfig withCheckInterval(@NonNull final Duration checkInterval)
+    AsyncAssertAwaitConfig withCheckInterval(@NonNull final Duration checkInterval)
     {
         if (checkInterval.compareTo(ZERO) <= 0)
         {
@@ -48,7 +48,7 @@ final class AsyncAssertAwaiConfig
         {
             throw new IllegalArgumentException("checkInterval must be lower than or equal to timeout");
         }
-        return new AsyncAssertAwaiConfig(timeout, checkInterval);
+        return new AsyncAssertAwaitConfig(timeout, checkInterval);
     }
 
     Duration checkInterval(@NonNull final ElapsedTime elapsedTime)

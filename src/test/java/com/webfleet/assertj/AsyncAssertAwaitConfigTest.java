@@ -22,7 +22,7 @@ class AsyncAssertAwaitConfigTest
     void shouldThrowExceptionOnCreationWithNullTimeout()
     {
         // when
-        final var caughtException = catchThrowable(() -> AsyncAssertAwaiConfig.withTimeout(null));
+        final var caughtException = catchThrowable(() -> AsyncAssertAwaitConfig.withTimeout(null));
 
         // then
         assertThat(caughtException)
@@ -35,7 +35,7 @@ class AsyncAssertAwaitConfigTest
     void shouldThrowExceptionOnCreationWithNegativeOrZeroTimeout(final Duration timeout)
     {
         // when
-        final var caughtException = catchThrowable(() -> AsyncAssertAwaiConfig.withTimeout(timeout));
+        final var caughtException = catchThrowable(() -> AsyncAssertAwaitConfig.withTimeout(timeout));
 
         // then
         assertThat(caughtException)
@@ -66,7 +66,7 @@ class AsyncAssertAwaitConfigTest
                                                          final SoftAssertions softly)
     {
         // when
-        final var tested = AsyncAssertAwaiConfig.withTimeout(timeout);
+        final var tested = AsyncAssertAwaitConfig.withTimeout(timeout);
 
         // then
         softly.assertThat(tested.checkInterval()).isEqualTo(expectedCheckInterval);
@@ -87,7 +87,7 @@ class AsyncAssertAwaitConfigTest
                                                                    final SoftAssertions softly)
     {
         // given
-        final var tested = AsyncAssertAwaiConfig.withTimeout(timeout);
+        final var tested = AsyncAssertAwaitConfig.withTimeout(timeout);
 
         // when
         final var withWaitInterval = tested.withCheckInterval(waitInterval);
@@ -122,7 +122,7 @@ class AsyncAssertAwaitConfigTest
                                                                         final Duration expectedCheckInterval)
     {
         // given
-        final var config = AsyncAssertAwaiConfig.withTimeout(timeout)
+        final var config = AsyncAssertAwaitConfig.withTimeout(timeout)
             .withCheckInterval(configuredCheckInterval);
         final ElapsedTime elapsedTime = () -> elapsedTimeDuration;
 
@@ -138,7 +138,7 @@ class AsyncAssertAwaitConfigTest
     {
         // given
         final var timeout = Duration.ofSeconds(5);
-        final var tested = AsyncAssertAwaiConfig.withTimeout(timeout);
+        final var tested = AsyncAssertAwaitConfig.withTimeout(timeout);
 
         // when
         final var caughtException = catchThrowable(() -> tested.withCheckInterval(timeout.plusMillis(1)));
@@ -154,7 +154,7 @@ class AsyncAssertAwaitConfigTest
     void shouldThrowExceptionWhenChangedCheckIntervalIsNegativeOrZero(final Duration checkInterval)
     {
         // given
-        final var tested = AsyncAssertAwaiConfig.withTimeout(Duration.ofSeconds(1L));
+        final var tested = AsyncAssertAwaitConfig.withTimeout(Duration.ofSeconds(1L));
 
         // when
         final var caughtException = catchThrowable(() -> tested.withCheckInterval(checkInterval));
@@ -169,7 +169,7 @@ class AsyncAssertAwaitConfigTest
     void shouldThrowExceptionWhenChangedCheckIntervalIsNull()
     {
         // given
-        final var tested = AsyncAssertAwaiConfig.withTimeout(Duration.ofSeconds(1L));
+        final var tested = AsyncAssertAwaitConfig.withTimeout(Duration.ofSeconds(1L));
 
         // when
         final var caughtException = catchThrowable(() -> tested.withCheckInterval(null));

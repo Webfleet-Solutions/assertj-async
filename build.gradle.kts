@@ -90,8 +90,8 @@ tasks {
     test {
         useJUnitPlatform()
         systemProperty("file.encoding", "UTF-8")
-        finalizedBy(jacocoTestReport)
         finalizedBy(junit4Test)
+        finalizedBy(jacocoTestReport)
         testLogging {
             events("passed", "skipped", "failed")
         }
@@ -99,6 +99,7 @@ tasks {
     // Jacoco tasks
     jacocoTestReport {
         dependsOn(test)
+        dependsOn(junit4Test)
         executionData(fileTree(project.buildDir).include("jacoco/*.exec"))
         finalizedBy(jacocoTestCoverageVerification)
         reports {

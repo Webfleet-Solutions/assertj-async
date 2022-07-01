@@ -14,7 +14,7 @@ import org.junit.Test;
  */
 public class AsyncAssertionErrorCreatorJUnit4Test
 {
-    private static final AsyncAssertAwaiConfig CONFIG = AsyncAssertAwaiConfig.withTimeout(Duration.ofSeconds(4));
+    private static final AsyncAssertAwaitConfig CONFIG = AsyncAssertAwaitConfig.withTimeout(Duration.ofSeconds(4));
 
     @Test
     public void shouldCreateAsyncAssertionErrorForSingleError()

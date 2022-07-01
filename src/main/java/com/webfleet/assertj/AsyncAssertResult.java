@@ -40,7 +40,7 @@ final class AsyncAssertResult
         return error != null;
     }
 
-    void throwOnFailure(@NonNull final AsyncAssertAwaiConfig config)
+    void throwOnFailure(@NonNull final AsyncAssertAwaitConfig config)
     {
         if (hasFailed())
         {

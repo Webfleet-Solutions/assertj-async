@@ -11,7 +11,7 @@ import org.opentest4j.MultipleFailuresError;
 
 class AsyncAssertionErrorCreatorTest
 {
-    private static final AsyncAssertAwaiConfig CONFIG = AsyncAssertAwaiConfig.withTimeout(Duration.ofMillis(1500L));
+    private static final AsyncAssertAwaitConfig CONFIG = AsyncAssertAwaitConfig.withTimeout(Duration.ofMillis(1500L));
 
     @Test
     void shouldCreateAsyncAssertionErrorForSingleError()
