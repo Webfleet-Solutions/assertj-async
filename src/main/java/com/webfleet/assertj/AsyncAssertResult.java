@@ -40,11 +40,11 @@ final class AsyncAssertResult
         return error != null;
     }
 
-    void throwOnFailure(@NonNull final AsyncAssertTimeoutCondition timeCondition)
+    void throwOnFailure(@NonNull final AsyncAssertAwaiConfig config)
     {
         if (hasFailed())
         {
-            throw AsyncAssertionErrorCreator.create(timeCondition, error);
+            throw AsyncAssertionErrorCreator.create(config, error);
         }
     }
 }

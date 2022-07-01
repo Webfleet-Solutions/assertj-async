@@ -25,6 +25,36 @@ repositories {
     mavenCentral()
 }
 
+contacts {
+    addPerson("jakub.stan.malek@gmail.com", delegateClosureOf<Contact> {
+        github = "jakubmalek"
+        moniker = "Jakub Małek"
+        role("owner")
+    })
+}
+
+sourceSets {
+    register("junit4Test") {
+        compileClasspath += sourceSets.main.get().output
+        runtimeClasspath += sourceSets.main.get().output
+    }
+}
+
+configurations {
+    "junit4TestImplementation" {
+        extendsFrom(implementation.get())
+    }
+    "junit4TestAnnotationProcessor"  {
+        extendsFrom(annotationProcessor.get())
+    }
+    "junit4TestRuntimeOnly" {
+        extendsFrom(runtimeOnly.get())
+    }
+}
+
+group to "com.webfleet"
+
+
 dependencies {
     // api
     api("org.assertj", "assertj-core", "[3.23.0,3.24.0[")
@@ -37,18 +67,58 @@ dependencies {
     // test
     testImplementation("org.junit.jupiter", "junit-jupiter", "[5.8.0,6.0.0[")
     testImplementation("org.mockito", "mockito-junit-jupiter", "[4.6.0,5.0.0[")
+
+    // junit4 test used to test optional dependency to opentest4j
+    "junit4TestImplementation"("junit", "junit", "4.13.2")
 }
 
 tasks {
+    withType<JavaCompile> {
+        options.encoding = "UTF-8"
+    }
+    // Test tasks
+    val junit4Test = register<Test>("junit4Test") {
+        group = LifecycleBasePlugin.VERIFICATION_GROUP
+        description = "Test checking compatibility with JUnit4 API"
+        systemProperty("file.encoding", "UTF-8")
+        testLogging {
+            events("passed", "skipped", "failed")
+        }
+        val sourceSet = sourceSets["junit4Test"]
+        testClassesDirs = sourceSet.output.classesDirs
+        classpath = configurations[sourceSet.runtimeClasspathConfigurationName] + sourceSet.output + sourceSets["main"].output
+    }
     test {
         useJUnitPlatform()
+        systemProperty("file.encoding", "UTF-8")
+        finalizedBy(jacocoTestReport)
+        finalizedBy(junit4Test)
+        testLogging {
+            events("passed", "skipped", "failed")
+        }
     }
-}
-
-contacts {
-    addPerson("jakub.stan.malek@gmail.com", delegateClosureOf<Contact> {
-        github = "jakubmalek"
-        moniker = "Jakub Małek"
-        role("owner")
-    })
+    // Jacoco tasks
+    jacocoTestReport {
+        dependsOn(test)
+        executionData(fileTree(project.buildDir).include("jacoco/*.exec"))
+        finalizedBy(jacocoTestCoverageVerification)
+        reports {
+            html.required to true
+            xml.required to true
+        }
+    }
+    jacocoTestCoverageVerification {
+        executionData(fileTree(project.buildDir).include("jacoco/*.exec"))
+        violationRules {
+            rule {
+                element = "PACKAGE"
+                includes = listOf("com.webfleet.*")
+                limit {
+                    counter = "INSTRUCTION"
+                    value = "COVEREDRATIO"
+                    minimum = "0.8".toBigDecimal()
+                }
+            }
+        }
+    }
 }

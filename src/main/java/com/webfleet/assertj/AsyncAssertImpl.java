@@ -14,24 +14,24 @@ import lombok.NonNull;
 final class AsyncAssertImpl implements AsyncAssert
 {
     private final Time time;
-    private final AsyncAssertTimeoutCondition timeCondition;
+    private final AsyncAssertAwaiConfig config;
     private final Object waitMutex;
 
-    AsyncAssertImpl(@NonNull final Time time, @NonNull final AsyncAssertTimeoutCondition timeCondition)
+    AsyncAssertImpl(@NonNull final Time time, @NonNull final AsyncAssertAwaiConfig config)
     {
-        this(time, timeCondition, new Object());
+        this(time, config, new Object());
     }
 
     @Override
     public AsyncAssert withCheckInterval(@NonNull final Duration checkInterval)
     {
-        return new AsyncAssertImpl(time, timeCondition.withCheckInterval(checkInterval), waitMutex);
+        return new AsyncAssertImpl(time, config.withCheckInterval(checkInterval), waitMutex);
     }
 
     @Override
     public AsyncAssert usingWaitMutex(@NonNull final Object waitMutex)
     {
-        return new AsyncAssertImpl(time, timeCondition, waitMutex);
+        return new AsyncAssertImpl(time, config, waitMutex);
     }
 
     @Override
@@ -41,18 +41,18 @@ final class AsyncAssertImpl implements AsyncAssert
         final var waitCondition = time.waitCondition(waitMutex);
 
         var result = AsyncAssertResult.undefined();
-        while (result.hasFailed() && elapsedTime.isLowerThanOrEqualTo(timeCondition.timeout()) && !Thread.currentThread().isInterrupted())
+        while (result.hasFailed() && elapsedTime.isLowerThanOrEqualTo(config.timeout()) && !Thread.currentThread().isInterrupted())
         {
             result = AsyncAssertResult.evaluate(assertionsConfigurer);
             if (result.hasFailed())
             {
-                if (!elapsedTime.isLowerThan(timeCondition.timeout()))
+                if (!elapsedTime.isLowerThan(config.timeout()))
                 {
                     break;
                 }
-                waitCondition.waitFor(timeCondition.checkInterval(elapsedTime));
+                waitCondition.waitFor(config.checkInterval(elapsedTime));
             }
         }
-        result.throwOnFailure(timeCondition);
+        result.throwOnFailure(config);
     }
 }

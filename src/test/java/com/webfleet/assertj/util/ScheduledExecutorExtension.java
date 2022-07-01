@@ -12,7 +12,7 @@ import org.junit.jupiter.api.extension.ParameterResolutionException;
 import org.junit.jupiter.api.extension.ParameterResolver;
 
 
-public final class ExecutorExtension implements BeforeAllCallback, AfterAllCallback, ParameterResolver
+final class ScheduledExecutorExtension implements BeforeAllCallback, AfterAllCallback, ParameterResolver
 {
     private ScheduledExecutorService executor;
 

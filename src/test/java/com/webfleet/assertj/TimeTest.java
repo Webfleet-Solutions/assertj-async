@@ -20,11 +20,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
-import com.webfleet.assertj.util.ExecutorExtension;
+import com.webfleet.assertj.util.EnableScheduledExecutor;
 
 
-@ExtendWith({MockitoExtension.class, SoftAssertionsExtension.class, ExecutorExtension.class})
+@ExtendWith({MockitoExtension.class, SoftAssertionsExtension.class})
 @MockitoSettings(strictness = Strictness.LENIENT)
+@EnableScheduledExecutor
 class TimeTest
 {
     @Mock
@@ -38,26 +39,26 @@ class TimeTest
     }
 
     @Test
-    void shouldMeasureElaspedTime(final SoftAssertions softly)
+    void shouldMeasureElapsedTimeUsingClock(final SoftAssertions softly)
     {
         // given
         given(clock.millis()).willReturn(0L, 5000L, 15000L);
 
         // when
-        final var elaspedTime = tested.measure();
+        final var elapsedTime = tested.measure();
 
         // then
-        softly.assertThat(elaspedTime.get()).isEqualTo(Duration.ofSeconds(5));
-        softly.assertThat(elaspedTime.get()).isEqualTo(Duration.ofSeconds(15));
-        softly.assertThat(elaspedTime.get()).isEqualTo(Duration.ofSeconds(15));
+        softly.assertThat(elapsedTime.get()).isEqualTo(Duration.ofSeconds(5));
+        softly.assertThat(elapsedTime.get()).isEqualTo(Duration.ofSeconds(15));
+        softly.assertThat(elapsedTime.get()).isEqualTo(Duration.ofSeconds(15));
 
-        softly.assertThat(elaspedTime.isLowerThan(Duration.ofSeconds(15))).isFalse();
-        softly.assertThat(elaspedTime.isLowerThan(Duration.ofSeconds(15).plusMillis(1))).isTrue();
-        softly.assertThat(elaspedTime.isLowerThan(Duration.ofSeconds(15).minusMillis(1))).isFalse();
+        softly.assertThat(elapsedTime.isLowerThan(Duration.ofSeconds(15))).isFalse();
+        softly.assertThat(elapsedTime.isLowerThan(Duration.ofSeconds(15).plusMillis(1))).isTrue();
+        softly.assertThat(elapsedTime.isLowerThan(Duration.ofSeconds(15).minusMillis(1))).isFalse();
 
-        softly.assertThat(elaspedTime.isLowerThanOrEqualTo(Duration.ofSeconds(15))).isTrue();
-        softly.assertThat(elaspedTime.isLowerThanOrEqualTo(Duration.ofSeconds(15).plusMillis(1))).isTrue();
-        softly.assertThat(elaspedTime.isLowerThanOrEqualTo(Duration.ofSeconds(15).minusMillis(1))).isFalse();
+        softly.assertThat(elapsedTime.isLowerThanOrEqualTo(Duration.ofSeconds(15))).isTrue();
+        softly.assertThat(elapsedTime.isLowerThanOrEqualTo(Duration.ofSeconds(15).plusMillis(1))).isTrue();
+        softly.assertThat(elapsedTime.isLowerThanOrEqualTo(Duration.ofSeconds(15).minusMillis(1))).isFalse();
     }
 
     @Test
@@ -70,6 +71,7 @@ class TimeTest
         // when
         final var caughtException = catchThrowable(() -> waitCondition.waitFor(Duration.ZERO));
 
+        // then
         assertThat(caughtException).isNull();
     }
 
@@ -83,6 +85,7 @@ class TimeTest
         // when
         final var caughtException = catchThrowable(() -> waitCondition.waitFor(Duration.ofMillis(-1L)));
 
+        // then
         assertThat(caughtException).isNull();
     }
 
@@ -109,11 +112,7 @@ class TimeTest
         // given
         final var mutexObject = new Object();
         final var waitCondition = tested.waitCondition(mutexObject);
-
-        // when
         final var future = executor.submit(() -> waitCondition.waitFor(Duration.ofSeconds(5)));
-
-        // then
         Thread.sleep(50L); // sleep a while to make sure object.wait was executed
         softly.assertThat(future).isNotDone();
 
@@ -124,7 +123,7 @@ class TimeTest
         }
 
         // then
-        future.get(100L, MILLISECONDS);
+        softly.assertThat(catchThrowable(() -> future.get(100L, MILLISECONDS))).isNull(); // 100ms margin for future completion
         softly.assertThat(future).isDone();
     }
 }

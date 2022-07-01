@@ -17,201 +17,198 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
 import org.assertj.core.api.SoftAssertions;
 import org.assertj.core.api.junit.jupiter.SoftAssertionsExtension;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
-import com.webfleet.assertj.util.ExecutorExtension;
+import com.webfleet.assertj.util.EnableScheduledExecutor;
 
 
-@ExtendWith({SoftAssertionsExtension.class, ExecutorExtension.class})
+@ExtendWith(SoftAssertionsExtension.class)
+@EnableScheduledExecutor
 class AsyncAssertionsTest
 {
+    private final AtomicInteger checkCount = new AtomicInteger();
+
+    @AfterEach
+    void resetCheckCounter()
+    {
+        checkCount.set(0);
+    }
+
     @Test
-    void shouldPassAssertionOnFirstCheck()
+    @Timeout(value = 1, unit = SECONDS)
+    void shouldCheckPositiveAssertionsOnce(final SoftAssertions softly)
     {
         // given
         final var condition = new AtomicBoolean(true);
-        final var checkCount = new AtomicInteger();
 
         // when
-        final var caughtException = catchThrowable(() -> awaitAtMostOneSecond()
-            .untilAssertions(async -> {
-                async.assertThat(condition).isTrue();
-                checkCount.incrementAndGet();
-            }));
+        final var caughtError = catchAsyncAssertError(awaitAtMostFiveSeconds(), async -> async
+            .assertThat(condition).isTrue());
 
         // then
-        assertThat(caughtException).isNull();
-        assertThat(checkCount).hasValue(1);
+        softly.assertThat(caughtError).isNull();
+        softly.assertThat(checkCount).hasValue(1);
     }
 
     @Test
-    void shouldPassAssertionOnThirdCheck()
+    @Timeout(value = 1, unit = SECONDS)
+    void shouldCheckAssertionThreeTimesUntilPositiveResult(final SoftAssertions softly)
     {
         // given
         final var condition = new AtomicInteger(3);
-        final var checkCount = new AtomicInteger();
 
         // when
-        final var caughtException = catchThrowable(() -> awaitAtMostOneSecond()
-            .untilAssertions(async -> {
-                checkCount.incrementAndGet();
-                async.assertThat(condition.decrementAndGet()).isZero();
-            }));
+        final var caughtError = catchAsyncAssertError(awaitAtMostFiveSeconds(), async -> async
+            .assertThat(condition.decrementAndGet()).isZero());
 
         // then
-        assertThat(caughtException).isNull();
-        assertThat(checkCount).hasValue(3);
+        softly.assertThat(caughtError).isNull();
+        softly.assertThat(checkCount).hasValue(3);
     }
 
     @Test
-    void shouldPassAssertionWithExplicitAssertAllCall()
+    @Timeout(value = 1, unit = SECONDS)
+    void shouldCatchErrorProducedByExplicitAssertAllCallsByAssertionConfigurer(final SoftAssertions softly)
     {
         // given
         final var condition = new AtomicInteger(2);
-        final var checkCount = new AtomicInteger();
 
         // when
-        final var caughtException = catchThrowable(() -> awaitAtMostOneSecond()
-            .untilAssertions(async -> {
-                checkCount.incrementAndGet();
-                async.assertThat(condition.decrementAndGet()).isZero();
-                async.assertAll();
-            }));
+        final var caughtError = catchAsyncAssertError(awaitAtMostFiveSeconds(), async -> {
+            async.assertThat(condition.decrementAndGet()).isZero();
+            async.assertAll(); // assertAll is called automatically, but if used explicitly it shouldn't produce failures
+        });
 
         // then
-        assertThat(caughtException).isNull();
-        assertThat(checkCount).hasValue(2);
+        softly.assertThat(caughtError).isNull();
+        softly.assertThat(checkCount).hasValue(2);
     }
 
     @Test
-    void shouldPassAssertionAfterChangeInOtherThread(final ScheduledExecutorService executor)
+    void shouldKeepCheckingAssertionUntilConditionIsChangedInOtherThreadToExpectedResult(final ScheduledExecutorService executor,
+                                                                                         final SoftAssertions softly)
+        throws Exception
     {
         // given
         final var condition = new AtomicBoolean(false);
-        final var checkCount = new AtomicInteger();
-        executor.schedule(() -> condition.set(true), 100L, TimeUnit.MILLISECONDS);
+        final var asyncAssert = awaitAtMostFiveSeconds()
+            .withCheckInterval(50, MILLISECONDS);
+        final var caughtErrorFuture = executor.submit(() -> catchAsyncAssertError(asyncAssert, async -> async
+            .assertThat(condition).isTrue()));
+        awaitForFirstAssertionCheck(); // make sure the assertion checks begun
+        softly.assertThat(caughtErrorFuture).isNotDone();
 
         // when
-        final var caughtException = catchThrowable(() -> awaitAtMostOneSecond()
-            .untilAssertions(async -> {
-                async.assertThat(condition).isTrue();
-                checkCount.incrementAndGet();
-            }));
+        condition.set(true);
 
         // then
-        assertThat(caughtException).isNull();
-        assertThat(checkCount).hasPositiveValue();
+        final var caughtError = caughtErrorFuture.get(100L, MILLISECONDS);
+        softly.assertThat(caughtError).isNull();
     }
 
     @Test
-    void shouldFailAssertionAfterExceedingTimeout()
+    void shouldKeepCheckingAssertionUntilCustomTimeout(final SoftAssertions softly)
     {
         // given
         final var timeoutMs = 777L;
         final var condition = new AtomicBoolean(false);
-        final var checkCount = new AtomicInteger();
 
         // when
-        final var caughtException = catchThrowable(() -> awaitAtMost(timeoutMs, MILLISECONDS)
-            .untilAssertions(async -> {
-                async.assertThat(condition.get()).isTrue();
-                checkCount.incrementAndGet();
-            }));
+        final var caughtError = catchAsyncAssertError(awaitAtMost(timeoutMs, MILLISECONDS), async -> async
+            .assertThat(condition.get()).isTrue());
 
         // then
-        assertThat(caughtException).isInstanceOf(AssertionError.class)
+        softly.assertThat(caughtError).isInstanceOf(AssertionError.class)
             .hasMessageContaining("Async assertion failed after exceeding 777ms timeout (1 failure)")
             .hasMessageContaining("Expecting value to be true but was false");
-        assertThat(checkCount).hasPositiveValue();
+        softly.assertThat(checkCount).hasPositiveValue();
     }
 
     @Test
-    void shouldFailMultipleAssertionAfterExceedingTimeout()
+    void shouldKeepCheckingAssertionWithMultipleConditionsUntilTimeout(final SoftAssertions softly)
     {
         // given
         final var timeoutMs = 500L;
         final var condition1 = new AtomicBoolean(false);
         final var condition2 = new AtomicReference<>();
-        final var checkCount = new AtomicInteger();
 
         // when
-        final var caughtException = catchThrowable(() -> awaitAtMost(timeoutMs, MILLISECONDS)
-            .untilAssertions(async -> {
-                async.assertThat(condition1.get()).isTrue();
-                async.assertThat(condition2.get()).isNotNull();
-                checkCount.incrementAndGet();
-            }));
+        final var caughtError = catchAsyncAssertError(awaitAtMost(timeoutMs, MILLISECONDS), async -> {
+            async.assertThat(condition1.get()).isTrue();
+            async.assertThat(condition2.get()).isNotNull();
+        });
 
         // then
-        assertThat(caughtException).isInstanceOf(AssertionError.class)
+        softly.assertThat(caughtError).isInstanceOf(AssertionError.class)
             .hasMessageContaining("Async assertion failed after exceeding 500ms timeout (2 failures)")
             .hasMessageContaining("Expecting value to be true but was false")
             .hasMessageContaining("Expecting actual not to be null");
-        assertThat(checkCount).hasPositiveValue();
+        softly.assertThat(checkCount).hasPositiveValue();
     }
 
     @Test
-    void shouldFailSingleAssertionAfterExceedingTimeout(final ScheduledExecutorService executor)
+    void shouldTimeoutAssertionChecksWhenAtLeastOneConditionIsNotPositive(final ScheduledExecutorService executor, final SoftAssertions softly)
+        throws Exception
     {
         // given
         final var timeoutMs = 1000L;
         final var condition1 = new AtomicBoolean(false);
         final var condition2 = new AtomicReference<>();
-        final var checkCount = new AtomicInteger();
-        executor.schedule(() -> condition2.set(new Object()), 77L, MILLISECONDS);
+        final var caughtErrorFuture = executor.submit(() -> catchAsyncAssertError(awaitAtMost(timeoutMs, MILLISECONDS), async -> {
+            async.assertThat(condition1.get()).isTrue();
+            async.assertThat(condition2.get()).isNotNull();
+        }));
+        awaitForFirstAssertionCheck(); // make sure the assertion checks begun
+        softly.assertThat(caughtErrorFuture).isNotDone();
 
         // when
-        final var caughtException = catchThrowable(() -> awaitAtMost(timeoutMs, MILLISECONDS)
-            .untilAssertions(async -> {
-                async.assertThat(condition1.get()).isTrue();
-                async.assertThat(condition2.get()).isNotNull();
-                checkCount.incrementAndGet();
-            }));
+        condition2.set(new Object());
 
         // then
-        assertThat(caughtException).isInstanceOf(AssertionError.class)
+        final var caughtError = caughtErrorFuture.get(timeoutMs, MILLISECONDS);
+        softly.assertThat(caughtError).isInstanceOf(AssertionError.class)
             .hasMessageContaining("Async assertion failed after exceeding 1000ms timeout (1 failure)")
             .hasMessageContaining("Expecting value to be true but was false");
-        assertThat(checkCount).hasPositiveValue();
+        softly.assertThat(checkCount).hasPositiveValue();
     }
 
     @Test
-    void shouldWaitForAssertionsWithMutexObject(final ScheduledExecutorService executor)
+    void shouldInterruptCheckIntervalWaitWhenWaitMutexObjectIsNotified(final ScheduledExecutorService executor, final SoftAssertions softly)
+        throws Exception
     {
         // given
         final var condition = new AtomicBoolean(false);
-        final var checkCount = new AtomicInteger();
-        final var mutex = new Object();
-        final var assertionFutue = executor.submit(() -> awaitAtMostFiveSeconds()
-            .withWaitInterval(4, SECONDS)
-            .usingWaitMutex(mutex).untilAssertions(async -> {
-                async.assertThat(condition).isTrue();
-                checkCount.incrementAndGet();
-            }));
-        awaitAtMostOneSecond().untilAssertions(softly -> softly.assertThat(checkCount).hasPositiveValue());
+        final var waitMutex = new Object();
+        final var asyncAssert = awaitAtMostFiveSeconds()
+            .withCheckInterval(4, SECONDS)
+            .usingWaitMutex(waitMutex);
+        final var caughtErrorFuture = executor.submit(() -> catchAsyncAssertError(asyncAssert, async -> async.assertThat(condition).isTrue()));
+        awaitForFirstAssertionCheck(); // make sure the assertion checks begun
 
         // when
         condition.set(true);
-        synchronized (mutex)
+        synchronized (waitMutex)
         {
-            mutex.notifyAll();
+            waitMutex.notifyAll();
         }
 
-        // then
-        awaitAtMostOneSecond().untilAssertions(async -> {
-            async.assertThat(assertionFutue).isDone();
-            async.assertThat(checkCount).hasPositiveValue();
-        });
+        // then 4 second wait should be interrupted
+        final var caughtError = caughtErrorFuture.get(100L, MILLISECONDS);
+        softly.assertThat(caughtError).isNull();
+        softly.assertThat(checkCount).hasValue(2);
     }
 
     @Test
-    void shouldThrowExceptionOnNullTimeout()
+    void shouldThrowExceptionWhenAwaitTimeoutIsSetToNull()
     {
         // when
         final var caughtException = catchThrowable(() -> awaitAtMost(null));
@@ -223,7 +220,7 @@ class AsyncAssertionsTest
     }
 
     @Test
-    void shouldThrowExceptionOnNullTimeoutUnit()
+    void shouldThrowExceptionWhenAwaitTimeoutTimeUnitIsSetToNull()
     {
         // when
         final var caughtException = catchThrowable(() -> awaitAtMost(1L, null));
@@ -231,12 +228,12 @@ class AsyncAssertionsTest
         // then
         assertThat(caughtException)
             .isInstanceOf(NullPointerException.class)
-            .hasMessage("unit is marked non-null but is null");
+            .hasMessage("timeUnit is marked non-null but is null");
     }
 
     @ParameterizedTest
     @CsvSource({"PT0S", "-PT0.001S"})
-    void shouldThrowExceptionOnTimeoutDurationLowerThanOrEqualToZero(final Duration timeout)
+    void shouldThrowExceptionWhenAwaitTimeoutIsSetToZeroOrNegativeDuration(final Duration timeout)
     {
         // when
         final var caughtException = catchThrowable(() -> awaitAtMost(timeout));
@@ -249,7 +246,7 @@ class AsyncAssertionsTest
 
     @ParameterizedTest
     @CsvSource({"0", "-1"})
-    void shouldThrowExceptionOnTimeoutIntervalLowerThanOrEqualToZero(final long timeout)
+    void shouldThrowExceptionWhenTimeoutIsSetToZeroOrNegativeValueInMilliseconds(final long timeout)
     {
         // when
         final var caughtException = catchThrowable(() -> awaitAtMost(timeout, TimeUnit.MILLISECONDS));
@@ -261,12 +258,26 @@ class AsyncAssertionsTest
     }
 
     @Test
-    void testThatPredefinedAwaitTimeoutsAreValid(final SoftAssertions softly)
+    void testThatPredefinedAwaitTimeoutDurationsAreValid(final SoftAssertions softly)
     {
-        softly.assertThat(awaitAtMostOneSecond()).extracting("timeCondition.timeout").isEqualTo(Duration.ofSeconds(1));
-        softly.assertThat(awaitAtMostTwoSeconds()).extracting("timeCondition.timeout").isEqualTo(Duration.ofSeconds(2));
-        softly.assertThat(awaitAtMostFiveSeconds()).extracting("timeCondition.timeout").isEqualTo(Duration.ofSeconds(5));
-        softly.assertThat(awaitAtMostFifteenSeconds()).extracting("timeCondition.timeout").isEqualTo(Duration.ofSeconds(15));
-        softly.assertThat(awaitAtMostThirtySeconds()).extracting("timeCondition.timeout").isEqualTo(Duration.ofSeconds(30));
+        softly.assertThat(awaitAtMostOneSecond()).extracting("config.timeout").isEqualTo(Duration.ofSeconds(1));
+        softly.assertThat(awaitAtMostTwoSeconds()).extracting("config.timeout").isEqualTo(Duration.ofSeconds(2));
+        softly.assertThat(awaitAtMostFiveSeconds()).extracting("config.timeout").isEqualTo(Duration.ofSeconds(5));
+        softly.assertThat(awaitAtMostFifteenSeconds()).extracting("config.timeout").isEqualTo(Duration.ofSeconds(15));
+        softly.assertThat(awaitAtMostThirtySeconds()).extracting("config.timeout").isEqualTo(Duration.ofSeconds(30));
+    }
+
+    private Throwable catchAsyncAssertError(final AsyncAssert asyncAssert,
+                                            final Consumer<SoftAssertions> assertionConfigurer)
+    {
+        return catchThrowable(() -> asyncAssert.untilAssertions(async -> {
+            checkCount.incrementAndGet();
+            assertionConfigurer.accept(async);
+        }));
+    }
+
+    private void awaitForFirstAssertionCheck()
+    {
+        awaitAtMostOneSecond().untilAssertions(async -> async.assertThat(checkCount).hasPositiveValue());
     }
 }

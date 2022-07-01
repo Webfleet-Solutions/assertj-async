@@ -29,7 +29,7 @@ public final class AsyncAssertions
      */
     public static AsyncAssert awaitAtMost(@NonNull final Duration timeout)
     {
-        return new AsyncAssertImpl(SystemTime.UTC, AsyncAssertTimeoutCondition.withTimeout(timeout));
+        return new AsyncAssertImpl(SystemTime.UTC, AsyncAssertAwaiConfig.withTimeout(timeout));
     }
 
     /**
@@ -43,12 +43,12 @@ public final class AsyncAssertions
      * </code></pre>
      *
      * @param timeout timeout value for the assertions
-     * @param unit timeout unit
+     * @param timeUnit timeout unit
      * @return {@link AsyncAssert}
      */
-    public static AsyncAssert awaitAtMost(final long timeout, @NonNull final TimeUnit unit)
+    public static AsyncAssert awaitAtMost(final long timeout, @NonNull final TimeUnit timeUnit)
     {
-        return awaitAtMost(Duration.ofMillis(unit.toMillis(timeout)));
+        return awaitAtMost(Duration.ofMillis(timeUnit.toMillis(timeout)));
     }
 
     /**

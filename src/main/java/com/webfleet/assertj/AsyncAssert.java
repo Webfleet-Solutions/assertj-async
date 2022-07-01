@@ -59,7 +59,7 @@ public interface AsyncAssert
      * @param unit the time unit of the check interval
      * @return new {@link AsyncAssert} with set check interval
      */
-    default AsyncAssert withWaitInterval(final long checkInterval, @NonNull final TimeUnit unit)
+    default AsyncAssert withCheckInterval(final long checkInterval, @NonNull final TimeUnit unit)
     {
         return withCheckInterval(Duration.ofMillis(unit.toMillis(checkInterval)));
     }

@@ -16,127 +16,133 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @ExtendWith(SoftAssertionsExtension.class)
 class AsyncAssertTest
 {
-    private static final AsyncAssertTimeoutCondition TIMEOUT = AsyncAssertTimeoutCondition
+    private static final AsyncAssertAwaiConfig CONFIG = AsyncAssertAwaiConfig
         .withTimeout(Duration.ofSeconds(5))
         .withCheckInterval(Duration.ofSeconds(1));
 
     private MockTime time;
     private AsyncAssert tested;
-    private final AtomicInteger failures = new AtomicInteger();
+
+    private final AtomicInteger assertionFailureCount = new AtomicInteger();
     private final Consumer<SoftAssertions> assertionConfigurer = async -> async
-        .assertThat(failures.getAndDecrement()).isLessThanOrEqualTo(0);
+        .assertThat(assertionFailureCount.getAndDecrement()).isLessThanOrEqualTo(0);
 
     @BeforeEach
     void setup()
     {
-        failures.set(0);
+        assertionFailureCount.set(0);
         time = MockTime.create();
-        tested = new AsyncAssertImpl(time, TIMEOUT);
+        tested = new AsyncAssertImpl(time, CONFIG);
+    }
+
+    private void givenAssertionFailCount(final int failCount)
+    {
+        assertionFailureCount.set(failCount);
     }
 
     @Test
-    void shouldNotWaitWhenAssertionIsPositiveForTheFirstTime(final SoftAssertions softly)
+    void shouldNotWaitWhenAssertionsArePositiveForTheFirstTime(final SoftAssertions softly)
     {
         // when
         final var caughtException = catchThrowable(() -> tested.untilAssertions(assertionConfigurer));
 
         // then
         softly.assertThat(caughtException).isNull();
-        softly.assertThat(time.waitIntervals).isEmpty();
+        softly.assertThat(time.waitIntervals()).isEmpty();
     }
 
     @Test
-    void shouldEvaluateAssertionUntilSuccess(final SoftAssertions softly)
+    void shouldKeepCheckingAssertionsWithCheckIntervalWaitTimeUntilSuccess(final SoftAssertions softly)
     {
         // given
-        failures.set(5);
+        givenAssertionFailCount(5);
 
         // when
         final var caughtException = catchThrowable(() -> tested.untilAssertions(assertionConfigurer));
 
         // then
         softly.assertThat(caughtException).isNull();
-        softly.assertThat(time.waitIntervals).containsExactly(
-            TIMEOUT.checkInterval(),
-            TIMEOUT.checkInterval(),
-            TIMEOUT.checkInterval(),
-            TIMEOUT.checkInterval(),
-            TIMEOUT.checkInterval());
+        softly.assertThat(time.waitIntervals()).containsExactly(
+            CONFIG.checkInterval(),
+            CONFIG.checkInterval(),
+            CONFIG.checkInterval(),
+            CONFIG.checkInterval(),
+            CONFIG.checkInterval());
     }
 
     @Test
-    void shouldEvaluateAssertionUntilTimeout(final SoftAssertions softly)
+    void shouldKeepCheckingAssertionsWithCheckIntervalWaitTimeUntilTimeout(final SoftAssertions softly)
     {
         // given
-        failures.set(6);
+        givenAssertionFailCount(6);
 
         // when
         final var caughtException = catchThrowable(() -> tested.untilAssertions(assertionConfigurer));
 
         // then
         softly.assertThat(caughtException).isInstanceOf(AssertionError.class);
-        softly.assertThat(time.waitIntervals).containsExactly(
-            TIMEOUT.checkInterval(),
-            TIMEOUT.checkInterval(),
-            TIMEOUT.checkInterval(),
-            TIMEOUT.checkInterval(),
-            TIMEOUT.checkInterval());
+        softly.assertThat(time.waitIntervals()).containsExactly(
+            CONFIG.checkInterval(),
+            CONFIG.checkInterval(),
+            CONFIG.checkInterval(),
+            CONFIG.checkInterval(),
+            CONFIG.checkInterval());
     }
 
     @Test
-    void shouldEvaluateAssertionUntilTimeoutWithChangedCheckInterval(final SoftAssertions softly)
+    void shouldKeepCheckingAssertionsWithCustomCheckIntervalWaitTimeUntilTimeout(final SoftAssertions softly)
     {
         // given
-        final var checkInterval = Duration.ofMillis(1777L);
-        tested = tested.withCheckInterval(checkInterval);
-        failures.set(4);
+        final var customCheckInterval = Duration.ofMillis(1777L);
+        tested = tested.withCheckInterval(customCheckInterval);
+        givenAssertionFailCount(4);
 
         // when
         final var caughtException = catchThrowable(() -> tested.untilAssertions(assertionConfigurer));
 
         // then
         softly.assertThat(caughtException).isInstanceOf(AssertionError.class);
-        softly.assertThat(time.waitIntervals).containsExactly(
-            checkInterval,
-            checkInterval,
-            Duration.ofMillis(1446L));
+        softly.assertThat(time.waitIntervals()).containsExactly(
+            customCheckInterval,
+            customCheckInterval,
+            Duration.ofMillis(1446L)); // the last wait is shortened to not exceed timeout, the next check failure stops the loop
     }
 
     @Test
-    void shouldEvaluateAssertionUntilSuccessUsingCustomWaitMutex(final SoftAssertions softly)
+    void shouldKeepCheckingAssertionsWithCustomCheckIntervalWaitAndCustomWaitMutexTimeUntilSuccess(final SoftAssertions softly)
     {
         // given
-        final var checkInterval = Duration.ofMillis(1800L);
-        final var waitMutex = new Object();
-        tested = tested.withCheckInterval(checkInterval).usingWaitMutex(waitMutex);
-        failures.set(3);
+        final var customCheckInterval = Duration.ofMillis(1800L);
+        final var customWaitMutex = new Object();
+        tested = tested.withCheckInterval(customCheckInterval).usingWaitMutex(customWaitMutex);
+        givenAssertionFailCount(3);
 
         // when
         final var caughtException = catchThrowable(() -> tested.untilAssertions(assertionConfigurer));
 
         // then
         softly.assertThat(caughtException).isNull();
-        softly.assertThat(time.waitIntervals).containsExactly(
-            checkInterval,
-            checkInterval,
-            Duration.ofMillis(1400L));
-        softly.assertThat(time.waitMutexObjects).containsExactly(waitMutex);
+        softly.assertThat(time.waitIntervals()).containsExactly(
+            customCheckInterval,
+            customCheckInterval,
+            Duration.ofMillis(1400L)); // the last wait is shortened to not exceed timeout, the next check success stops the loop
+        softly.assertThat(time.waitMutexObjects()).containsExactly(customWaitMutex);
     }
 
     @Test
-    void shouldShortenWaitIntervalToOneMillisecond(final SoftAssertions softly)
+    void shouldShortenCheckIntervalToOneMillisecond(final SoftAssertions softly)
     {
         // given
         final var checkInterval = Duration.ofMillis(4999L);
         tested = tested.withCheckInterval(checkInterval);
-        failures.set(2);
+        givenAssertionFailCount(2);
 
         // when
         final var caughtException = catchThrowable(() -> tested.untilAssertions(assertionConfigurer));
 
         // then
         softly.assertThat(caughtException).isNull();
-        softly.assertThat(time.waitIntervals).containsExactly(
+        softly.assertThat(time.waitIntervals()).containsExactly(
             checkInterval,
             Duration.ofMillis(1L));
     }

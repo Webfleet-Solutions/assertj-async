@@ -16,8 +16,8 @@ final class MockTime implements Time
 {
     private final ElapsedTime elapsedTime = spy(ElapsedTime.class);
     private final WaitCondition waitCondition = mock(WaitCondition.class);
-    final List<Duration> waitIntervals = new ArrayList<>();
-    final List<Object> waitMutexObjects = new ArrayList<>();
+    private final List<Duration> waitIntervals = new ArrayList<>();
+    private final List<Object> waitMutexObjects = new ArrayList<>();
 
     static MockTime create()
     {

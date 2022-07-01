@@ -11,7 +11,7 @@ import org.opentest4j.MultipleFailuresError;
 
 class AsyncAssertionErrorCreatorTest
 {
-    private static final AsyncAssertTimeoutCondition TIMEOUT = AsyncAssertTimeoutCondition.withTimeout(Duration.ofMillis(1500L));
+    private static final AsyncAssertAwaiConfig CONFIG = AsyncAssertAwaiConfig.withTimeout(Duration.ofMillis(1500L));
 
     @Test
     void shouldCreateAsyncAssertionErrorForSingleError()
@@ -20,7 +20,7 @@ class AsyncAssertionErrorCreatorTest
         final var error = new AssertionError("test");
 
         // when
-        final var asyncAssertionError = AsyncAssertionErrorCreator.create(TIMEOUT, error);
+        final var asyncAssertionError = AsyncAssertionErrorCreator.create(CONFIG, error);
 
         // then
         assertThat(asyncAssertionError)
@@ -39,7 +39,7 @@ class AsyncAssertionErrorCreatorTest
         final var multiErrors = new MultipleFailuresError("we have some errors here", List.of(error1, error2, error3));
 
         // when
-        final var asyncAssertionError = AsyncAssertionErrorCreator.create(TIMEOUT, multiErrors);
+        final var asyncAssertionError = AsyncAssertionErrorCreator.create(CONFIG, multiErrors);
 
         // then
         assertThat(asyncAssertionError)
