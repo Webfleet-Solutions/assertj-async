@@ -1,4 +1,5 @@
 import nebula.plugin.contacts.Contact
+import java.util.Base64
 
 plugins {
     id("org.owasp.dependencycheck") version "7.1.1"
@@ -38,11 +39,13 @@ nexusPublishing {
 }
 
 signing {
-    useInMemoryPgpKeys(
-        System.getenv("SIGNING_KEY_ID"),
-        System.getenv("SIGNING_KEY"),
-        System.getenv("SIGNING_KEY_PASSWORD"))
-    sign(publishing.publications["nebula"])
+    val signingKeyId = System.getenv("SIGNING_KEY_ID")
+    val signingKey = System.getenv("SIGNING_KEY")
+    val signingKeyPassword = System.getenv("SIGNING_KEY_PASSWORD")
+    if (signingKeyId != null && signingKey != null) {
+        useInMemoryPgpKeys(signingKeyId, String(Base64.getDecoder().decode(signingKey)), signingKeyPassword)
+        sign(publishing.publications["nebula"])
+    }
 }
 
 contacts {
