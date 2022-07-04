@@ -9,11 +9,13 @@ plugins {
     id("nebula.contacts") version "6.0.0"
     id("nebula.info-scm") version "11.3.3"
     id("tylerthrailkill.nebula-mit-license") version "0.0.3"
+    id("io.github.gradle-nexus.publish-plugin") version "1.1.0"
 
     jacoco
     `java-library`
     `maven-publish`
     `project-report`
+    signing
 }
 
 java {
@@ -23,6 +25,24 @@ java {
 
 repositories {
     mavenCentral()
+}
+
+nexusPublishing {
+    repositories {
+        sonatype {
+            nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
+            username.set(System.getenv("SONATYPE_USERNAME"))
+            password.set(System.getenv("SONATYPE_PASSWORD"))
+        }
+    }
+}
+
+signing {
+    useInMemoryPgpKeys(
+        System.getenv("SIGNING_KEY_ID"),
+        System.getenv("SIGNING_KEY"),
+        System.getenv("SIGNING_KEY_PASSWORD"))
+    sign(publishing.publications["nebula"])
 }
 
 contacts {
