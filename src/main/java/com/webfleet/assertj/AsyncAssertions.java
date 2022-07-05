@@ -9,20 +9,21 @@ import lombok.NonNull;
 
 
 /**
- * Entry point for asynchronous assertions.
+ * Entry point for building asynchronous assertions.
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class AsyncAssertions
 {
     /**
-     * Returns evaluator of asynchronous assertions with given timeout.
-     * See {@link AsyncAssert} for more details.
-     *
-     * <pre><code class='java'>
+     * Builds asynchronous assertion with given timeout.
+     * <p>
+     * Example usage:
+     * <pre>{@code
      * awaitAtMost(Duration.ofSeconds(5)).untilAssertions(async -> {
      *     async.assertThat(getValue()).isEqualTo(expected);
      * });
-     * </code></pre>
+     * }</pre>
+     * See {@link AsyncAssert} for more details.
      *
      * @param timeout timeout for the assertions
      * @return {@link AsyncAssert}
@@ -33,16 +34,17 @@ public final class AsyncAssertions
     }
 
     /**
-     * Returns evaluator of asynchronous assertions with given timeout.
-     * See {@link AsyncAssert} for more details.
-     *
-     * <pre><code class='java'>
+     * Builds asynchronous assertion with given timeout value and time unit.
+     * <p>
+     * Example usage:
+     * <pre>{@code
      * awaitAtMost(5, SECONDS).untilAssertions(async -> {
      *     async.assertThat(getValue()).isEqualTo(expected);
      * });
-     * </code></pre>
+     * }</pre>
+     * See {@link AsyncAssert} for more details.
      *
-     * @param timeout timeout value for the assertions
+     * @param timeout timeout value for the assertion
      * @param timeUnit timeout unit
      * @return {@link AsyncAssert}
      */
@@ -52,14 +54,15 @@ public final class AsyncAssertions
     }
 
     /**
-     * Returns evaluator of asynchronous assertions with 1 second timeout.
-     * See {@link AsyncAssert} for more details.
-     *
-     * <pre><code class='java'>
+     * Builds asynchronous assertion with 1 second timeout.
+     * <p>
+     * Example usage:
+     * <pre>{@code
      * awaitAtMostOneSecond().untilAssertions(async -> {
      *     async.assertThat(getValue()).isEqualTo(expected);
      * });
-     * </code></pre>
+     * }</pre>
+     * See {@link AsyncAssert} for more details.
      *
      * @return {@link AsyncAssert}
      */
@@ -69,14 +72,15 @@ public final class AsyncAssertions
     }
 
     /**
-     * Returns evaluator of asynchronous assertions with 2 seconds timeout.
-     * See {@link AsyncAssert} for more details.
-     *
-     * <pre><code class='java'>
+     * Builds asynchronous assertion with 2 seconds timeout.
+     * <p>
+     * Example usage:
+     * <pre>{@code
      * awaitAtMostTwoSeconds().untilAssertions(async -> {
      *     async.assertThat(getValue()).isEqualTo(expected);
      * });
-     * </code></pre>
+     * }</pre>
+     * See {@link AsyncAssert} for more details.
      *
      * @return {@link AsyncAssert}
      */
@@ -86,14 +90,15 @@ public final class AsyncAssertions
     }
 
     /**
-     * Returns evaluator of asynchronous assertions with 5 seconds timeout.
-     * See {@link AsyncAssert} for more details.
-     *
-     * <pre><code class='java'>
+     * Builds asynchronous assertion with 5 seconds timeout.
+     * <p>
+     * Example usage:
+     * <pre>{@code
      * awaitAtMostFiveSeconds().untilAssertions(async -> {
      *     async.assertThat(getValue()).isEqualTo(expected);
      * });
-     * </code></pre>
+     * }</pre>
+     * See {@link AsyncAssert} for more details.
      *
      * @return {@link AsyncAssert}
      */
@@ -103,14 +108,15 @@ public final class AsyncAssertions
     }
 
     /**
-     * Returns evaluator of asynchronous assertions with 15 seconds timeout.
-     * See {@link AsyncAssert} for more details.
-     *
-     * <pre><code class='java'>
+     * Builds asynchronous assertion with 15 seconds timeout.
+     * <p>
+     * Example usage:
+     * <pre>{@code
      * awaitAtMostFifteenSeconds().untilAssertions(async -> {
      *     async.assertThat(getValue()).isEqualTo(expected);
      * });
-     * </code></pre>
+     * }</pre>
+     * See {@link AsyncAssert} for more details.
      *
      * @return {@link AsyncAssert}
      */
@@ -120,14 +126,15 @@ public final class AsyncAssertions
     }
 
     /**
-     * Returns evaluator of asynchronous assertions with 30 seconds timeout.
-     * See {@link AsyncAssert} for more details.
-     *
-     * <pre><code class='java'>
+     * Builds asynchronous assertion with 30 seconds timeout.
+     * <p>
+     * Example usage:
+     * <pre>{@code
      * awaitAtMostThirtySeconds().untilAssertions(async -> {
      *     async.assertThat(getValue()).isEqualTo(expected);
      * });
-     * </code></pre>
+     * }</pre>
+     * See {@link AsyncAssert} for more details.
      *
      * @return {@link AsyncAssert}
      */

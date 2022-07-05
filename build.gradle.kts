@@ -9,6 +9,8 @@ plugins {
     id("nebula.maven-scm") version "18.4.0"
     id("nebula.contacts") version "6.0.0"
     id("nebula.info-scm") version "11.3.3"
+    id("nebula.source-jar") version "18.4.0"
+    id("nebula.javadoc-jar") version "18.4.0"
     id("tylerthrailkill.nebula-mit-license") version "0.0.3"
     id("io.github.gradle-nexus.publish-plugin") version "1.1.0"
 
