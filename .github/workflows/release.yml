@@ -5,7 +5,7 @@ on:
       - v[0-9]+.[0-9]+.[0-9]+
 
 jobs:
-  build:
+  release:
     runs-on: ubuntu-latest
     environment: release
     steps:
@@ -26,7 +26,7 @@ jobs:
           path: ~/.gradle/wrapper
           key: ${{ runner.os }}-gradlewrapper-${{ hashFiles('gradle/wrapper/*') }}
       - name: Release
-        run: ./gradlew --info -Prelease.useLastTag=true final
+        run: ./gradlew --info -Prelease.useLastTag=true final publishNebulaPublicationToSonatypeRepository
         env:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
